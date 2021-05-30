@@ -10,8 +10,7 @@ from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 from typing import Callable
 from functools import wraps as functools_wraps
-from inspect import signature
-from inspect import isclass
+from inspect import signature, isclass
 from ctypes import pythonapi, c_long, py_object
 
 
