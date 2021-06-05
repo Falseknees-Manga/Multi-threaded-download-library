@@ -15,7 +15,7 @@ proxies={
 	"https": 'http://127.0.0.1:7890'
 }
 try:
-	my_requests = requests(header, 5, False, None, 'get_error', disable_insecure_request_warning=True)
+	my_requests = requests(header, 5, False, None, True)
 	logger.info('让我们获取一个页面看看')
 	response = my_requests.get('https://falseknees.com/archive.html')
 	logger.info('状态码：' + str(response.status_code))
@@ -23,7 +23,7 @@ try:
 	response = my_requests.get('https://falseknees.com/archive.html', proxies=proxies)
 	logger.info('状态码：' + str(response.status_code))
 except:
-	logger.warning('Oops，网络IO似乎出了点问题，但requests类绝对没有出bug')
+	logger.warning('Oops，网络IO似乎出了点问题：' + response)
 
 def display_thread_list():
 	thread_list = thread_enumerate()

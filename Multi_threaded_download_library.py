@@ -32,31 +32,30 @@ class Logger:
 	console_fmt = ColoredFormatter(
 		'[%(asctime)s] [%(threadName)s] [%(log_color)s%(levelname)s%(reset)s]: '
 		'%(message_log_color)s%(message)s%(reset)s',
-		log_colors={
+		log_colors = {
 			'DEBUG': 'blue',
 			'INFO': 'green',
 			'WARNING': 'yellow',
 			'ERROR': 'red',
 			'CRITICAL': 'bold_red',
 		},
-		secondary_log_colors={
+		secondary_log_colors = {
 			'message': {
 				'WARNING': 'yellow',
 				'ERROR': 'red',
 				'CRITICAL': 'bold_red'
 			}
 		},
-		datefmt='%H:%M:%S'
+		datefmt = '%H:%M:%S'
 	)
 
-	def __init__(self, logger_registered_name: str = 'logger', initial_level: int = 20):
+	def __init__(self, logger_registered_name: str = 'logger', initial_level: int = 20, console_format: dict = console_fmt):
 		self.logger = getLogger(logger_registered_name)
 		self.logger.setLevel(initial_level)
 
-		# Console Handler
 		self.ch = StreamHandler()
 		self.ch.setLevel(initial_level)
-		self.ch.setFormatter(self.console_fmt)
+		self.ch.setFormatter(console_format)
 		self.logger.addHandler(self.ch)
 
 		self.debug = self.logger.debug
@@ -101,21 +100,22 @@ class Json(dict):
 
 
 class requests:
-	def __init__(self, initial_header: dict = {}, times_limit: int = 1, verify: bool = True, proxies: dict = None, error_return: str = 'error', disable_insecure_request_warning = False):
+	def __init__(self, initial_header: dict = {}, times_limit: int = 1, verify: bool = True, proxies: dict = None, disable_insecure_request_warning: bool = False, return_all_error: bool = False):
 		self.header = initial_header
 		self.times_limit = times_limit
 		self.verify = verify
 		self.proxies = proxies
-		self.error_return = error_return
+		self.return_all_error = return_all_error
 		if disable_insecure_request_warning:
 			disable_warnings(InsecureRequestWarning)
 
-	def get(self, link, additional_header: dict = None, times_limit: int = None, verify: bool = None, proxies: dict = None, error_return: str = None):
+	def get(self, link, additional_header: dict = None, times_limit: int = None, verify: bool = None, proxies: dict = None, return_all_error: bool = None):
 		times_limit = self.times_limit if times_limit is None else times_limit
 		verify = self.verify if verify is None else verify
 		proxies = self.proxies if proxies is None else proxies
-		error_return = self.error_return if error_return is None else error_return
+		return_all_error = self.return_all_error if return_all_error is None else return_all_error
 		try_times = 0
+		error_list = []
 		while try_times < times_limit:
 			try:
 				if additional_header is not None:
@@ -128,11 +128,15 @@ class requests:
 				else:
 					response = requests_get(link, headers=requests_header, verify=verify)
 				response.raise_for_status()
-			except Exception:
+			except Exception as e:
+				if return_all_error:
+					error_list.append(e)
+				else:
+					error = e
 				try_times+=1
 			else:
 				return response
-		return error_return
+		return error_list if return_all_error else error
 
 
 class download_thread(Thread):
